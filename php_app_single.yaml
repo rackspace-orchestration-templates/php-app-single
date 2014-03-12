@@ -1,0 +1,246 @@
+heat_template_version: 2013-05-23
+
+description: |
+  Heat template to deploy a single server running a PHP app under apache
+
+parameters:
+
+  server_hostname:
+    description: Server Name
+    type: string
+    default: php
+    constraints:
+    - length:
+        min: 1
+        max: 64
+    - allowed_pattern: "^[a-zA-Z][a-zA-Z0-9-]*$"
+      description: |
+        Must begin with a letter and contain only alphanumeric characters.
+
+  image:
+    description: Server Image
+    type: string
+    default: Ubuntu 12.04 LTS (Precise Pangolin)
+    constraints:
+    - allowed_values:
+      - Ubuntu 12.04 LTS (Precise Pangolin)
+      description: Must be a supported operating system.
+
+  flavor:
+    description: Rackspace Cloud Server flavor
+    type: string
+    default: 4 GB Performance
+    constraints:
+    - allowed_values:
+      - 1 GB Performance
+      - 2 GB Performance
+      - 4 GB Performance
+      - 8 GB Performance
+      - 15 GB Performance
+      - 30 GB Performance
+      - 512MB Standard Instance
+      - 1GB Standard Instance
+      - 2GB Standard Instance
+      - 4GB Standard Instance
+      - 8GB Standard Instance
+      - 15GB Standard Instance
+      - 30GB Standard Instance
+      description: |
+        Must be a valid Rackspace Cloud Server flavor for the region you have
+        selected to deploy into.
+
+  ssh_keypair_name:
+    description: Nova keypair name for ssh access to the server
+    type: string
+    default: php-app
+
+  revision:
+    description: Git Branch/Ref
+    type: string
+    default: HEAD
+
+  packages:
+    description: PHP Packages
+    type: string
+    default: ''
+
+  repo:
+    description: Git Repo URL
+    type: string
+    default: ''
+
+  url:
+    description: URL for site
+    type: string
+    default: 'http://example.com'
+
+  deploy_key:
+    description: Git deploy key for private repositories.
+    type: string
+    default: ''
+
+  destination:
+    description: Deploy Directory
+    default: /var/www/vhosts/application
+    type: string
+
+  public:
+    description: The public facing directory of your application relative to the destination.
+    type: string
+    default: /
+
+  sslcert:
+    description: SSL Certificate
+    type: string
+    default: false
+
+  sslkey:
+    description: SSL Key
+    type: string
+    default: false
+
+  sslcacert:
+    description: SSL CA Certificate
+    type: string
+    default: false
+
+  varnish:
+    description: Install Varnish
+    type: string
+    default: false
+
+  http_port:
+    description: HTTP Port
+    type: string
+    default: 80
+
+  https_port:
+      description: HTTPS Port
+      type: string
+      default: 443
+
+  memcached_size:
+    description: Memcached memory size limit
+    type: number
+    default: 128
+
+resources:
+
+  ssh_key:
+    type: "OS::Nova::KeyPair"
+    properties:
+      name: { get_param: ssh_keypair_name }
+      save_private_key: true
+
+  mysql_root_password:
+    type: "OS::Heat::RandomString"
+    properties:
+      length: 32
+      sequence: lettersdigits
+
+  mysql_debian_password:
+    type: "OS::Heat::RandomString"
+    properties:
+      length: 32
+      sequence: lettersdigits
+
+  mysql_repl_password:
+    type: "OS::Heat::RandomString"
+    properties:
+      length: 32
+      sequence: lettersdigits
+
+  php_server:
+    type: "Rackspace::Cloud::Server"
+    properties:
+      name: { get_param: server_hostname }
+      flavor: { get_param: flavor }
+      image: { get_param: image }
+      key_name: { get_resource: ssh_key }
+
+  bootstrap_server:
+    type: "OS::Heat::ChefSolo"
+    properties:
+      username: root
+      private_key: { get_attr: [ssh_key, private_key] }
+      host: { get_attr: [php_server, accessIPv4] }
+      Berksfile: |
+        site :opscode
+
+        cookbook 'apt'
+        cookbook 'build-essential'
+      node:
+        run_list: ["recipe[apt]",
+                   "recipe[build-essential]"]
+
+  php_setup:
+    type: "OS::Heat::ChefSolo"
+    DependsOn: bootstrap_server
+    properties:
+      username: root
+      private_key: { get_attr: [ssh_key, private_key] }
+      host: { get_attr: [php_server, accessIPv4] }
+      Berksfile: |
+        site :opscode
+
+        cookbook 'build-essential'
+        cookbook 'apt'
+        cookbook 'chef-client'
+        cookbook 'apache2'
+        cookbook 'mysql'
+        cookbook 'application',
+          :git => 'https://github.com/opscode-cookbooks/application.git'
+        cookbook 'application_php',
+          :git => 'https://github.com/opscode-cookbooks/application_php.git'
+        cookbook 'php'
+        cookbook 'firewall',
+          :git => 'https://github.com/opscode-cookbooks/firewall.git',
+          :ref => 'c9473bcb3d666dc053979852042cef75236978fe'
+        cookbook 'php_app',
+          :git => 'https://github.com/JasonBoyles/php_app.git'
+        cookbook 'memcached'
+        cookbook 'ssh_known_hosts'
+        cookbook 'varnish'
+        cookbook 'php-ioncube',
+          :git => 'https://github.com/werdan/php-ioncube.git',
+          :ref => 'b663cb2a5fdcdc38564195603dc4c082517dc155'
+        cookbook 'rax_php_app',
+          :git => 'https://github.com/JasonBoyles/rax_php_app.git'
+
+      node:
+        mysql:
+          server_root_password: { get_attr: [mysql_root_password, value] }
+          server_debian_password: { get_attr: [mysql_debian_password, value] }
+          server_repl_password: { get_attr: [mysql_repl_password, value] }
+          bind_address: 127.0.0.1
+        php_app:
+          destination: { get_param: destination }
+          deploy_key: { get_param: deploy_key }
+          http_port: { get_param: http_port }
+          https_port: { get_param: https_port }
+          packages: { get_param: packages }
+          public: { get_param: public }
+          repo: { get_param: repo }
+          rev: { get_param: revision }
+          sslcert: { get_param: sslcert }
+          sslkey: { get_param: sslkey }
+          sslcacert: { get_param: sslcacert }
+          url: { get_param: url }
+          varnish: { get_param: varnish }
+        varnish:
+            backend_host: 127.0.0.1
+        run_list: ["recipe[memcached]",
+                   "recipe[rax_php_app]",
+                   "recipe[php-ioncube]",
+                   "recipe[mysql::server]"]
+
+
+outputs:
+  private_key:
+    value: { get_attr: [ssh_key, private_key] }
+
+  server_ip:
+    value: { get_attr: [php_server, accessIPv4] }
+
+  mysql_root_password:
+    value: { get_attr: [mysql_root_password, value] }
