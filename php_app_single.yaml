@@ -175,7 +175,7 @@ resources:
 
   php_setup:
     type: "OS::Heat::ChefSolo"
-    DependsOn: bootstrap_server
+    depends_on: bootstrap_server
     properties:
       username: root
       private_key: { get_attr: [ssh_key, private_key] }
