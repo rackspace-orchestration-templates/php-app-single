@@ -89,25 +89,25 @@ parameters:
     type: string
     default: /
 
-  sslcert:
-    description: SSL Certificate
-    type: string
-    default: false
+  # sslcert:
+  #  description: SSL Certificate
+  #  type: string
+  #  default: false
 
-  sslkey:
-    description: SSL Key
-    type: string
-    default: false
+  # sslkey:
+  #  description: SSL Key
+  #  type: string
+  #  default: false
 
-  sslcacert:
-    description: SSL CA Certificate
-    type: string
-    default: false
+  # sslcacert:
+  #  description: SSL CA Certificate
+  #  type: string
+  #  default: false
 
-  varnish:
-    description: Install Varnish
-    type: string
-    default: false
+  # varnish:
+  #  description: Install Varnish
+  #  type: string
+  #  default: false
 
   http_port:
     description: HTTP Port
@@ -185,11 +185,11 @@ resources:
           public: { get_param: public }
           repo: { get_param: repo }
           rev: { get_param: revision }
-          sslcert: { get_param: sslcert }
-          sslkey: { get_param: sslkey }
-          sslcacert: { get_param: sslcacert }
+          # sslcert: { get_param: sslcert }
+          # sslkey: { get_param: sslkey }
+          # sslcacert: { get_param: sslcacert }
           url: { get_param: url }
-          varnish: { get_param: varnish }
+          # varnish: { get_param: varnish }
         memcached:
           listen: 127.0.0.1
         varnish:
