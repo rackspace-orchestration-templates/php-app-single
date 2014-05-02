@@ -164,7 +164,7 @@ resources:
 
   php_setup:
     type: "OS::Heat::ChefSolo"
-    depends_on: bootstrap_server
+    depends_on: php_server
     properties:
       username: root
       private_key: { get_attr: [ssh_key, private_key] }
@@ -174,7 +174,7 @@ resources:
       node:
         mysql:
           server_root_password: { get_attr: [mysql_root_password, value] }
-          server_repl_password: { get_attr: [mysql_repl_password, value] }
+          server_debian_password: { get_attr: [mysql_debian_password, value] }
           bind_address: 127.0.0.1
         php_app:
           destination: { get_param: destination }

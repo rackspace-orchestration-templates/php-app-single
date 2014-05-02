@@ -29,7 +29,7 @@ Here is an example of how to deploy this template using the
 ```
 heat --os-username <OS-USERNAME> --os-password <OS-PASSWORD> --os-tenant-id \
   <TENANT-ID> --os-auth-url https://identity.api.rackspacecloud.com/v2.0/ \
-  stack-create myphpapp -f php_app.yaml \
+  stack-create myphpapp -f php_app_single.yaml \
   -P repo=https://github.com/MyUser/MyApp.git -P url=http://myapp.org
 ```
 
