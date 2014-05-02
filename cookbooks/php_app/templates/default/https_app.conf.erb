@@ -1,0 +1,49 @@
+<VirtualHost _default_:<%= node["php_app"]["https_port"] %>>
+  ServerName <%= @params[:server_name] %>
+  ServerAlias <% @params[:server_aliases].each do |a| %><%= "#{a}" %> <% end %>
+  DocumentRoot <%= @params[:docroot] %>
+
+  ErrorLog <%= node[:apache][:log_dir] %>/<%= @params[:server_name] %>-ssl-error.log
+  CustomLog <%= node[:apache][:log_dir] %>/<%= @params[:server_name] %>-ssl-access.log combined
+
+        LogLevel warn
+
+        SSLEngine on
+        SSLCertificateFile    <%= @params[:sslcert] %>
+        SSLCertificateKeyFile <%= @params[:sslkey] %>
+  <% if @params[:cacert] %>
+        SSLCACertificateFile <%= @params[:cacert] %>
+  <% end %>
+        <FilesMatch "\.(cgi|shtml|phtml|php)$">
+                SSLOptions +StdEnvVars
+        </FilesMatch>
+
+        BrowserMatch "MSIE [2-6]" \
+                nokeepalive ssl-unclean-shutdown \
+                downgrade-1.0 force-response-1.0
+        BrowserMatch "MSIE [17-9]" ssl-unclean-shutdown
+
+  <Directory <%= @params[:docroot] %>>
+    Options FollowSymLinks
+    AllowOverride None
+    Order allow,deny
+    Allow from all
+  </Directory>
+  
+  <Directory />
+    Options FollowSymLinks
+    AllowOverride None
+  </Directory>
+
+  <Location /server-status>
+    SetHandler server-status
+
+    Order Deny,Allow
+    Deny from all
+    Allow from 127.0.0.1
+  </Location>
+
+  RewriteEngine On
+  RewriteLog <%= node[:apache][:log_dir] %>/<%= @application_name %>-rewrite.log
+  RewriteLogLevel 0
+</VirtualHost>
