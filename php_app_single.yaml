@@ -3,9 +3,22 @@ heat_template_version: 2013-05-23
 description: |
   Heat template to deploy a single server running a PHP app under apache
 
+parameter_groups:
+
+- label: Server Settings
+  parameters:
+  - server_hostname
+  - image
+  - flavor
+
+- label: PHP Application Settings
+  parameters:
+  - url
+
 parameters:
 
   server_hostname:
+    label: Server Name
     description: Server Name
     type: string
     default: php
@@ -18,6 +31,7 @@ parameters:
         Must begin with a letter and contain only alphanumeric characters.
 
   image:
+    label: Server Image
     description: Server Image
     type: string
     default: Ubuntu 12.04 LTS (Precise Pangolin)
@@ -27,6 +41,7 @@ parameters:
       description: Must be a supported operating system.
 
   flavor:
+    label: Server Size
     description: Rackspace Cloud Server flavor
     type: string
     default: 4 GB Performance
@@ -50,41 +65,49 @@ parameters:
         selected to deploy into.
 
   ssh_keypair_name:
+    label: SSH Keypair
     description: Nova keypair name for ssh access to the server
     type: string
     default: php-app
 
   revision:
+    label: Revision
     description: Git Branch/Ref
     type: string
     default: HEAD
 
   packages:
+    label: PHP Packages
     description: PHP Packages
     type: string
     default: ''
 
   repo:
+    label: Git Repo
     description: Git Repo URL
     type: string
     default: ''
 
   url:
+    label: Site Domain
     description: URL for site
     type: string
     default: 'http://example.com'
 
   deploy_key:
+    label: Git Deploy Key
     description: Git deploy key for private repositories.
     type: string
     default: ''
 
   destination:
+    label: Site Path
     description: Deploy Directory
     default: /var/www/vhosts/application
     type: string
 
   public:
+    label: Public Relative Directory
     description: The public facing directory of your application relative to the destination.
     type: string
     default: /
@@ -110,26 +133,31 @@ parameters:
   #  default: false
 
   http_port:
+    label: HTTP Port
     description: HTTP Port
     type: string
     default: 80
 
   https_port:
-      description: HTTPS Port
-      type: string
-      default: 443
+    label: HTTPS Port
+    description: HTTPS Port
+    type: string
+    default: 443
 
   memcached_size:
+    label: Memcached Memory Limit
     description: Memcached memory size limit
     type: number
     default: 128
 
   kitchen:
+    label: Kitchen
     description: URL for the kitchen to use
     type: string
     default: https://github.com/rackspace-orchestration-templates/php-app-single
 
   chef_version:
+    label: Chef Version
     description: Version of chef client to use
     type: string
     default: 11.12.4
