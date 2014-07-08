@@ -7,13 +7,27 @@ parameter_groups:
 
 - label: Server Settings
   parameters:
-  - server_hostname
   - image
   - flavor
 
 - label: PHP Application Settings
   parameters:
   - url
+  - revision
+  - packages
+  - repo
+  - deploy_key
+  - destination
+  - public
+
+- label: rax-dev-params
+  parameters:
+  - server_hostname
+  - http_port
+  - https_port
+  - memcached_size
+  - kitchen
+  - chef_version
 
 parameters:
 
@@ -31,8 +45,10 @@ parameters:
         Must begin with a letter and contain only alphanumeric characters.
 
   image:
-    label: Server Image
-    description: Server Image
+    label: Operating System
+    description: |
+      Required: Server image used for all servers that are created as a part of
+      this deployment.
     type: string
     default: Ubuntu 12.04 LTS (Precise Pangolin)
     constraints:
@@ -42,7 +58,9 @@ parameters:
 
   flavor:
     label: Server Size
-    description: Rackspace Cloud Server flavor
+    description: |
+      Required: Rackspace Cloud Server flavor to use. The size is based on the
+      amount of RAM for the provisioned server.
     type: string
     default: 4 GB Performance
     constraints:
@@ -64,27 +82,26 @@ parameters:
         Must be a valid Rackspace Cloud Server flavor for the region you have
         selected to deploy into.
 
-  ssh_keypair_name:
-    label: SSH Keypair
-    description: Nova keypair name for ssh access to the server
-    type: string
-    default: php-app
-
   revision:
     label: Revision
-    description: Git Branch/Ref
+    description: |
+      Optional: Git Branch/Ref to deploy. Default: HEAD
     type: string
     default: HEAD
 
   packages:
-    label: PHP Packages
-    description: PHP Packages
+    label: System Packages
+    description: |
+      Optional: Additional system packages to install. For a list of available
+      packages, see: http://packages.ubuntu.com/precise/allpackages
     type: string
     default: ''
 
   repo:
-    label: Git Repo
-    description: Git Repo URL
+    label: Git Repository
+    description: |
+      Optional: URL to your git repository. Use the https syntax for public
+      repositories, use git@ syntax for private repositories.
     type: string
     default: ''
 
@@ -96,19 +113,23 @@ parameters:
 
   deploy_key:
     label: Git Deploy Key
-    description: Git deploy key for private repositories.
+    description: |
+      Optional: If you specified a private repository, provide your private
+      deploy key here.
     type: string
     default: ''
 
   destination:
     label: Site Path
-    description: Deploy Directory
+    description: Path to setup your application on your servers.
     default: /var/www/vhosts/application
     type: string
 
   public:
-    label: Public Relative Directory
-    description: The public facing directory of your application relative to the destination.
+    label: Public Directory
+    description: |
+      The public facing directory of your application relative to the
+      destination.
     type: string
     default: /
 
@@ -160,14 +181,14 @@ parameters:
     label: Chef Version
     description: Version of chef client to use
     type: string
-    default: 11.12.4
+    default: 11.12.8
 
 resources:
 
   ssh_key:
     type: "OS::Nova::KeyPair"
     properties:
-      name: { get_param: ssh_keypair_name }
+      name: { get_param: "OS::stack_id" }
       save_private_key: true
 
   mysql_root_password:
@@ -189,6 +210,8 @@ resources:
       flavor: { get_param: flavor }
       image: { get_param: image }
       key_name: { get_resource: ssh_key }
+      metadata:
+        rax-heat: { get_param: "OS::stack_id" }
 
   php_setup:
     type: "OS::Heat::ChefSolo"
@@ -232,10 +255,13 @@ resources:
 
 outputs:
   private_key:
+    description: SSH Private Key
     value: { get_attr: [ssh_key, private_key] }
 
   server_ip:
+    description: Server IP
     value: { get_attr: [php_server, accessIPv4] }
 
   mysql_root_password:
+    description: MySQL Root Password
     value: { get_attr: [mysql_root_password, value] }
