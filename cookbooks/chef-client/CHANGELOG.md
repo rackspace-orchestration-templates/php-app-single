@@ -1,11 +1,53 @@
-chef-client Cookbook CHANGELOG
-==============================
-This file is used to list changes made in each version of the chef-client cookbook.
+v4.0.0 (2014-12-10)
+-------------------
+- [@221] Retire the winsw service wrapper in Windows
+- [#227] Add sourcing /etc/default/locale to upstart script
+- [#224] Fix FreeBSD service startup
+- [#223] Add FreeBSD test harness
+
+v3.9.0 (2014-10-15)
+-------------------
+- [#208] Add AIX support
+
+v3.8.2 (2014-09-30)
+-------------------
+- [#206] Fixes amazon linux issues introduced in #190
+
+v3.8.1 (2014-09-30)
+-------------------
+- [#202] Avoid resource cloning
+- [#190] Use systemd by default on EL7
+
+v3.8.0 (2014-09-05)
+-------------------
+- [#182] Complete refactor of testing. Now uses chefspec and serverspec
+- [#134] Update of README to reflect there not being an init recipe
+- [#133] Allow windows_task[chef-client] attributes to be overridden
+- [#143] Added rc.d script for FreeBSD
+- [#155] Allow option to not reload current run Chef config
+- [#162] Update cron.rb to work properly for SUSE
+- [#169] Sort config hash
+- [#184] Changelog fixes
+
+v3.7.0 (2014-08-13)
+-------------------
+* remove dependency on ruby-wmi which breaks chef 11.14.2
+
+v3.6.0 (2014-06-07)
+-------------------
+* [COOK-3465] Switch Fedora to using systemd
+
+
+v3.5.0 (2014-05-07)
+-------------------
+- [COOK-4594] - 'Found chef-client in' log resource
+- Add Windows support to README
+
 
 v3.4.0 (2014-04-09)
 -------------------
 - [COOK-4521] - support Ohai 7 syntax for disabling plugins
-- [COOK-4505] - kill -9 chef-client when stopping vis SMF
+- [COOK-4505] - kill -9 chef-client when stopping via SMF
 
 
 v3.3.8 (2014-03-18)

@@ -2,6 +2,126 @@ mysql Cookbook CHANGELOG
 ========================
 This file is used to list changes made in each version of the mysql cookbook.
 
+v6.0.0 (2014-12-15)
+------------------
+- Major version update
+- Cookbook now provides LWRPs instead of recipes
+- Platform providers re-factored into init system providers
+- Separated :create and :start actions for use in recipes that build containers
+- mysql_service now supports multiple instances on the same machine
+- mysql_service no longer attempts to manage user records
+- Removal of debian-sys-maint
+- Unified Sysvinit script that works on all platforms
+- mysql_config resource introduced
+- mysql_client fixed up
+- Refactored acceptance tests
+- Temporarily dropped FreeBSD support
+
+v5.6.1 (2014-10-29)
+------------------
+- Use Gem::Version instead of Chef::Version
+
+v5.6.0 (2014-10-29)
+------------------
+- Changing default charset to utf8
+- Quoting passwords in debian.cnf.erb
+- Amazon 2014.09 support
+- Ubuntu 14.10 support
+- Only hide passwords from STDOUT via "sensitive true" in chef-client higher than 11.14
+- Updating test harness
+
+v5.5.4 (2014-10-07)
+------------------
+- Adding sensitive flag to execute resources to protect passwords from logs  
+
+v5.5.3 (2014-09-24)
+------------------
+- Reverting back to Upstart on Ubuntu 14.04
+
+v5.5.2 (2014-09-8)
+------------------
+- Reverting commit that broke Debian pass_string
+
+v5.5.1 (2014-09-2)
+------------------
+- Switching Ubuntu service provider to use SysVinit instead of Upstart
+
+v5.5.0 (2014-08-27)
+-------------------
+- Adding package version and action parameters to mysql_service resource
+- Fixing Debian pass_string
+
+v5.4.4 (2014-08-27)
+-------------------
+- Changing module namespace to MysqlCookbook
+
+v5.4.3 (2014-08-25)
+-------------------
+- More refactoring. Moving helper function bits into resource parsed_parameters
+
+v5.4.2 (2014-08-25)
+-------------------
+- Moving provider local variables into definitions for RHEL provider
+
+v5.4.1 (2014-08-25)
+-------------------
+- Refactoring resources into the LWRP style with parsed parameters
+- Moving provider local variables into definitions
+
+v5.4.0 (2014-08-25)
+-------------------
+- #212 - support for centos-7 (mysql55 and mysql56)
+- Adding (untested) Debian-6 support
+- Adding Suse support to metadata.rb
+- Adding ability to change MySQL root password
+- Added libmysqlclient-devel package to SuSE client provider
+- Appeasing AppArmor
+- Reducing duplication in client provider
+
+v5.3.6 (2014-06-18)
+-------------------
+- Fixing pid path location. Updating tests to include real RHEL
+
+
+v5.3.4 (2014-06-16)
+-------------------
+- Fixing specs for Amazon Linux server package names
+
+
+v5.3.2 (2014-06-16)
+-------------------
+- Fixing Amazon Linux support
+
+
+v5.3.0 (2014-06-11)
+-------------------
+- #189 - Fix server_repl_password description
+- #191 - Adding support for server55 and server56 on el-6
+- #193 - Fix syntax in mysql_service example
+- #199 - Adding Suse support
+
+
+v5.2.12 (2014-05-19)
+--------------------
+PR #192 - recipes/server.rb should honor parameter node['mysql']['version']
+
+
+v5.2.10 (2014-05-15)
+--------------------
+- COOK-4394 - restore freebsd support
+
+
+v5.2.8 (2014-05-15)
+-------------------
+- [COOK-4653] - Missing mySQL 5.6 support for Ubuntu 14.04
+
+
+v5.2.6 (2014-05-07)
+-------------------
+- [COOK-4625] - Fix password resource parameter consumption on Debian and Ubuntu
+- Fix up typos and version numbers in PLATFORMS.md
+- Fix up specs from COOK-4613 changes
+
 
 v5.2.4 (2014-05-02)
 -------------------

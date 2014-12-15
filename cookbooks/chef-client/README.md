@@ -31,6 +31,7 @@ The following platforms are known to work:
 - FreeBSD
 - Mac OS X
 - Mac OS X Server
+- Microsoft Windows (7, 8, 2003 R2, 2008, 2008 R2, 2012, 2012 R2)
 
 Other platforms may work with or without modification. Most notably, attribute modification may be required.
 
@@ -69,10 +70,10 @@ The following attributes affect the behavior of the chef-client program when run
   versions of chef-client exist on a system or the bin has been
   installed in a non-sane path. Default "/usr/bin/chef-client".
 * `node["chef_client"]["cron"]["minute"]` - The hour that chef-client
-  will run as a cron task, only applicable if the you set "cron" as
+  will run as a cron task, only applicable if you set "cron" as
   the "init_style"
 * `node["chef_client"]["cron"]["hour"]` - The hour that chef-client
-  will run as a cron task, only applicable if the you set "cron" as
+  will run as a cron task, only applicable if you set "cron" as
   the "init_style"
 * `node["chef_client"]["cron"]["environment_variables"]` - Environment
   variables to pass to chef-client's execution (e.g.
@@ -83,10 +84,24 @@ The following attributes affect the behavior of the chef-client program when run
   "cron_d" LWRP (https://github.com/opscode-cookbooks/cron). If false
   (default), use the cron resource built-in to Chef.
 * `node["chef_client"]["cron"]["mailto"]` - If set, `MAILTO` env variable is set for cron definition
+* `node['chef_client']['reload_config']` - If true, reload Chef config of
+  current Chef run when `client.rb` template changes (defaults to true)
 * `node["chef_client"]["daemon_options"]` - An array of additional
   options to pass to the chef-client service, empty by default, and
   must be an array if specified.
-
+* `node["chef_client"]["task"]["frequency"]` - Frequency with which to run
+  the `chef-client` scheduled task (hourly, daily, etc.) Default "minute"
+* `node["chef_client"]["task"]["frequency_modifier"]` - Numeric value to go
+  with the scheduled task frequency. Default is the value of
+  `node['chef_client']['interval']` in minutes.
+* `node["chef_client"]["task"]["start_time"]` - The start time for the task
+  in `HH:mm` format. If the `frequency` is `minute` default start time will be
+  `Time.now` plus the `frequency_modifier` number of minutes.
+* `node["chef_client"]["task"]["user"]` - The user the scheduled task
+  will run as, defaults to `'SYSTEM'`.
+* `node["chef_client"]["task"]["password"]` - The password for the user
+  the scheduled task will run as, defaults to `''` because the default
+  user, `'SYSTEM'`, does not need a password.
 
 The following attributes are set on a per-platform basis, see the `attributes/default.rb` file for default values.
 
@@ -170,7 +185,7 @@ rendered with attributes.
 ### service recipes
 The `chef-client::service` recipe includes one of the `chef-client::INIT_STYLE_service` recipes based on the attribute, `node['chef_client']['init_style']`. The individual service recipes can be included directly, too. For example, to use the init scripts, on a node or role's run list:
 
-    recipe[chef-client::init]
+    recipe[chef-client::init_service]
 
 To set up the chef-client under bluepill, daemontools or runit, those recipes must be specified on the node or role's run list first, to ensure that the dependencies are resolved, as this cookbook does not directly depend on them. For example, to use runit:
 

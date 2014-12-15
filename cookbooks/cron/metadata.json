@@ -1,6 +1,6 @@
 {
   "name": "cron",
-  "version": "1.3.12",
+  "version": "1.6.1",
   "description": "Installs cron",
   "long_description": "",
   "maintainer": "Opscode, Inc.",

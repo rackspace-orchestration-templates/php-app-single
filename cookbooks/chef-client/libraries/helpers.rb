@@ -16,7 +16,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 module Opscode
   module ChefClient
     # helper methods for use in chef-client recipe code
@@ -33,14 +32,29 @@ module Opscode
           node.recipe?('chef-server')
         else
           Chef::Log.debug("Node has Chef Server Recipe? #{node.recipe?("chef-server")}")
-          Chef::Log.debug("Node has Chef Server Executable? #{system("which chef-server > /dev/null 2>&1")}")
-          Chef::Log.debug("Node has Chef Server Ctl Executable? #{system("which chef-server-ctl > /dev/null 2>&1")}")
-          node.recipe?('chef-server') || system('which chef-server > /dev/null 2>&1') || system('which chef-server-ctl > /dev/null 2>&1')
+          Chef::Log.debug("Node has Chef Server Executable? #{system("which chef-server > /dev/null 2>&1")}") # ~FC048 Prefer Mixlib::ShellOut is ignored here
+          Chef::Log.debug("Node has Chef Server Ctl Executable? #{system("which chef-server-ctl > /dev/null 2>&1")}") # ~FC048 Prefer Mixlib::ShellOut is ignored here
+          node.recipe?('chef-server') || system('which chef-server > /dev/null 2>&1') || system('which chef-server-ctl > /dev/null 2>&1') # ~FC048 Prefer Mixlib::ShellOut is ignored here
         end
       end
 
+      def wmi_property_from_query(wmi_property, wmi_query)
+        @wmi = ::WIN32OLE.connect("winmgmts://")
+        result = @wmi.ExecQuery(wmi_query)
+        return nil unless result.each.count > 0
+        result.each.next.send(wmi_property)
+      end
+
+      def chef_client_service_running
+        wmi_property_from_query(:name, "select * from Win32_Service where name = 'chef-client'") != nil
+      end
+
       def root_owner
-        ['windows'].include?(node['platform']) ? 'Administrator' : 'root'
+        if ['windows'].include?(node['platform'])
+          wmi_property_from_query(:name, "select * from Win32_UserAccount where sid like 'S-1-5-21-%-500' and LocalAccount=True")
+        else
+          'root'
+        end
       end
 
       def dir_owner
@@ -54,8 +68,10 @@ module Opscode
       def root_group
         if %w{ openbsd freebsd mac_os_x mac_os_x_server }.include?(node['platform'])
           'wheel'
+        elsif ['aix'].include?(node['platform'])
+          'system'
         elsif ['windows'].include?(node['platform'])
-          'Administrators'
+          wmi_property_from_query(:name, "select * from Win32_Group where SID = 'S-1-5-32-544' AND LocalAccount=TRUE")
         else
           'root'
         end
@@ -74,11 +90,16 @@ module Opscode
         d_owner = dir_owner
         d_group = dir_group
         %w{run_path cache_path backup_path log_dir conf_dir}.each do |dir|
-          directory node['chef_client'][dir] do
-            recursive true
-            mode 00750 if dir == 'log_dir'
-            owner d_owner
-            group d_group
+          # Do not redefine the resource if it exist
+          begin
+            r = resources(directory: node['chef_client'][dir])
+          rescue Chef::Exceptions::ResourceNotFound
+            directory node['chef_client'][dir] do
+              recursive true
+              mode 00750 if dir == 'log_dir'
+              owner d_owner
+              group d_group
+            end
           end
         end
       end
@@ -117,7 +138,7 @@ module Opscode
           Chef::Log.debug 'Using chef-client bin from sane path'
           chef_in_sane_path
         # last ditch search for a bin in PATH
-        elsif (chef_in_path = %x{#{which} chef-client}.chomp) && ::File.send(existence_check, chef_in_path)
+      elsif (chef_in_path = %x{#{which} chef-client}.chomp) && ::File.send(existence_check, chef_in_path)  # ~FC048 Prefer Mixlib::ShellOut is ignored here
           Chef::Log.debug 'Using chef-client bin from system path'
           chef_in_path
         else

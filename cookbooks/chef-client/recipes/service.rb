@@ -30,9 +30,10 @@ supported_init_styles = %w{
   launchd
   runit
   smf
+  src
+  systemd
   upstart
   windows
-  winsw
 }
 
 init_style = node['chef_client']['init_style']
