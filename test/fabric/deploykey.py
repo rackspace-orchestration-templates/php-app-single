@@ -11,7 +11,7 @@ from envassert import detect, file, port, process, service, user
 @task
 def check():
     env.platform_family = detect.detect()
-    get_artifacts()
+    #get_artifacts()
 
     assert file.exists('/var/www/vhosts/application/current/index.php'), \
         '/var/www/vhosts/application/current/index.php did not exist'
