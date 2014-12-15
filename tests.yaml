@@ -38,7 +38,7 @@ test-cases:
           env:
             user: root
             key_filename: tmp/private_key
-            hosts: { get_output: server_public_ips } # Fetch from output-list of stack
+            hosts: { get_output: server_ip } # Fetch from output-list of stack
             tasks:
               - check
             abort_on_prompts: True
