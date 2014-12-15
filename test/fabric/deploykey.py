@@ -1,33 +1,20 @@
-import re, os
-from fabric.api import env, run, hide, task, get
-from envassert import detect, file, group, package, port, process, service, \
-    user
+import sys
+import os
 
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-def apache2_is_responding(search):
-    with hide('running', 'stdout'):
-        wget_cmd = (
-            "wget --quiet --output-document - --header='Host: example.com' "
-            "http://localhost/"
-        )
-        homepage = run(wget_cmd)
-        if re.search(search, homepage):
-            return True
-        else:
-            return False
+from fabric.api import env, task
+from testlib import get_artifacts, apache2_is_responding
+from envassert import detect, file, port, process, service, user
 
 
 @task
 def check():
     env.platform_family = detect.detect()
+    get_artifacts()
 
-    artifacts = ['/tmp/heat_chef', '/tmp/run_recipe.log']
-    for artifact in artifacts:
-        if os.getenv['CIRCLE_ARTIFACTS']:
-            get(artifact, os.environ['CIRCLE_ARTIFACTS'])
-
-    assert file.exists('/var/www/vhosts/application/index.php'), \
-        '/var/www/vhosts/application/index.php did not exist'
+    assert file.exists('/var/www/vhosts/application/current/index.php'), \
+        '/var/www/vhosts/application/current/index.php did not exist'
 
     assert port.is_listening(80), 'port 80/apache2 is not listening'
     assert port.is_listening(3306), 'port 3306/mysqld is not listening'
@@ -44,4 +31,4 @@ def check():
     assert service.is_enabled('mysql'), 'mysql service not enabled'
     assert service.is_enabled('memcached'), 'memcached is not enabled'
 
-    assert apache2_is_responding('PHP Version'), 'php app did not respond as expected'
+    assert apache2_is_responding('PHP Version'), 'php app did not respond'

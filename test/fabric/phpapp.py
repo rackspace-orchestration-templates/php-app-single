@@ -1,7 +1,6 @@
 import re
 from fabric.api import env, run, hide, task
-from envassert import detect, file, group, package, port, process, service, \
-    user
+from envassert import detect, file, port, process, service, user
 
 
 def apache2_is_responding():
@@ -21,8 +20,8 @@ def apache2_is_responding():
 def check():
     env.platform_family = detect.detect()
 
-    assert file.exists('/var/www/vhosts/application/index.php'), \
-        '/var/www/vhosts/application/index.php did not exist'
+    assert file.exists('/var/www/vhosts/application/current/index.php'), \
+        '/var/www/vhosts/application/current/index.php did not exist'
 
     assert port.is_listening(80), 'port 80/apache2 is not listening'
     assert port.is_listening(3306), 'port 3306/mysqld is not listening'
