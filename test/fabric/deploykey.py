@@ -23,7 +23,8 @@ def check():
 
     artifacts = ['/tmp/heat_chef', '/tmp/run_recipe.log']
     for artifact in artifacts:
-        get(artifact, os.environ['CIRCLE_ARTIFACTS'])
+        if os.get.environ['CIRCLE_ARTIFACTS']:
+            get(artifact, os.environ['CIRCLE_ARTIFACTS'])
 
     assert file.exists('/var/www/vhosts/application/index.php'), \
         '/var/www/vhosts/application/index.php did not exist'
