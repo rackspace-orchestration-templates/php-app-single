@@ -1,5 +1,5 @@
-import re
-from fabric.api import env, run, hide, task
+import re, os
+from fabric.api import env, run, hide, task, get
 from envassert import detect, file, group, package, port, process, service, \
     user
 
@@ -20,6 +20,10 @@ def apache2_is_responding(search):
 @task
 def check():
     env.platform_family = detect.detect()
+
+    artifacts = ['/tmp/heat_chef', '/tmp/run_recipe.log']
+    for artifact in artifacts:
+        get(artifact, os.environ['CIRCLE_ARTIFACTS'])
 
     assert file.exists('/var/www/vhosts/application/index.php'), \
         '/var/www/vhosts/application/index.php did not exist'
