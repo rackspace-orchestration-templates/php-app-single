@@ -24,7 +24,7 @@ def get_artifacts():
         if os.getenv('CIRCLE_ARTIFACTS') is not None:
             tarfile = "{0}.tar.gz".format(artifact)
             destination = "{0}/%(host)s/{1}".format(os.getenv('CIRCLE_ARTIFACTS'), tarfile)
-            command = "tar czvf {0} {1}".format(tarfile, artifact)
+            command = "tar czvf {0} --exclude='nodes' {1}".format(tarfile, artifact)
             run(command)
             get(tarfile, destination)
 
