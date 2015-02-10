@@ -99,3 +99,4 @@ instructions: |
   consider running a different version of the operating system. Most operating
   systems lock in specific major, minor, and release versions, and they only
   release updates for bugs or security fixes.
+user-input-required: true
