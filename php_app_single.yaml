@@ -181,7 +181,7 @@ parameters:
     label: Chef Version
     description: Version of chef client to use
     type: string
-    default: 11.12.8
+    default: 12.2.1-1
 
 resources:
 
