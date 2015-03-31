@@ -1,16 +1,13 @@
-chef-client Cookbook
+Chef Client Cookbook
 ====================
-This cookbook is used to configure a system as a Chef Client.
 
+[![Build Status](https://secure.travis-ci.org/chef-cookbooks/chef-client.png?branch=master)](http://travis-ci.org/chef-cookbooks/chef-client)
+
+This cookbook is used to configure a system as a Chef Client.
 
 Requirements
 ------------
-- Chef 0.10.14+
-- Ohai 0.6.12+
-
-Chef 10.14.0 or greater is recommended to make use of the
-`client_fork`
-[configuration option](http://tickets.opscode.com/browse/CHEF-3104).
+- Chef Client 11.x or better
 
 ### Platforms
 The following platforms are tested directly under test-kitchen; see .kitchen.yml and TESTING.md for details.
@@ -31,11 +28,13 @@ The following platforms are known to work:
 - FreeBSD
 - Mac OS X
 - Mac OS X Server
+- Microsoft Windows (7, 8, 2003 R2, 2008, 2008 R2, 2012, 2012 R2)
+- AIX (6.1, 7.1)
 
 Other platforms may work with or without modification. Most notably, attribute modification may be required.
 
-### Opscode Cookbooks
-Some cookbooks can be used with this cookbook but they are not explicitly required. The default settings in this cookbook do not require their use. The other cookbooks (on community.opscode.com) are:
+### Dependent Cookbooks
+Some cookbooks can be used with this cookbook but they are not explicitly required. The default settings in this cookbook do not require their use. The other cookbooks (on the [supermarket](https://supermarket.chef.io/)) are:
 
 - bluepill
 - daemontools
@@ -46,7 +45,6 @@ Cron is a dependency, for default behavior of the `cron` recipe to work. This is
 - cron
 
 See __USAGE__ below.
-
 
 Attributes
 ----------
@@ -61,6 +59,8 @@ The following attributes affect the behavior of the chef-client program when run
 * `node["chef_client"]["log_dir"]` - Sets directory used in
   `Chef::Config[:log_location]` via command-line option to a location
   where chef-client should log output. Default "/var/log/chef".
+* `node["chef_client"]["log_rotation"]["options"]` - Set options to logrotation of chef-client log file. Default `["compress"]`.
+* `node["chef_client"]["log_rotation"]["postrotate"]` - Set postrotate action for chef-client logrotation. Default to chef-client service reload depending on init system.
 * `node["chef_client"]["conf_dir"]` - Sets directory used via
   command-line option to a location where chef-client search for the
   client config file . Default "/etc/chef".
@@ -69,24 +69,39 @@ The following attributes affect the behavior of the chef-client program when run
   versions of chef-client exist on a system or the bin has been
   installed in a non-sane path. Default "/usr/bin/chef-client".
 * `node["chef_client"]["cron"]["minute"]` - The hour that chef-client
-  will run as a cron task, only applicable if the you set "cron" as
+  will run as a cron task, only applicable if you set "cron" as
   the "init_style"
 * `node["chef_client"]["cron"]["hour"]` - The hour that chef-client
-  will run as a cron task, only applicable if the you set "cron" as
+  will run as a cron task, only applicable if you set "cron" as
   the "init_style"
 * `node["chef_client"]["cron"]["environment_variables"]` - Environment
   variables to pass to chef-client's execution (e.g.
   `SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt` chef-client)
 * `node["chef_client"]["cron"]["log_file"]` - Location to capture the
+* `node["chef_client"]["cron"]["append_log"]` - Whether to append to the log. Default: `false`
   chef-client output.
 * `node["chef_client"]["cron"]["use_cron_d"]` - If true, use the
-  "cron_d" LWRP (https://github.com/opscode-cookbooks/cron). If false
+  "cron_d" LWRP (https://github.com/chef-cookbooks/cron). If false
   (default), use the cron resource built-in to Chef.
 * `node["chef_client"]["cron"]["mailto"]` - If set, `MAILTO` env variable is set for cron definition
+* `node['chef_client']['reload_config']` - If true, reload Chef config of
+  current Chef run when `client.rb` template changes (defaults to true)
 * `node["chef_client"]["daemon_options"]` - An array of additional
   options to pass to the chef-client service, empty by default, and
   must be an array if specified.
-
+* `node["chef_client"]["task"]["frequency"]` - Frequency with which to run
+  the `chef-client` scheduled task (hourly, daily, etc.) Default "minute"
+* `node["chef_client"]["task"]["frequency_modifier"]` - Numeric value to go
+  with the scheduled task frequency. Default is the value of
+  `node['chef_client']['interval']` in minutes.
+* `node["chef_client"]["task"]["start_time"]` - The start time for the task
+  in `HH:mm` format. If the `frequency` is `minute` default start time will be
+  `Time.now` plus the `frequency_modifier` number of minutes.
+* `node["chef_client"]["task"]["user"]` - The user the scheduled task
+  will run as, defaults to `'SYSTEM'`.
+* `node["chef_client"]["task"]["password"]` - The password for the user
+  the scheduled task will run as, defaults to `''` because the default
+  user, `'SYSTEM'`, does not need a password.
 
 The following attributes are set on a per-platform basis, see the `attributes/default.rb` file for default values.
 
@@ -124,7 +139,7 @@ This cookbook makes use of attribute-driven configuration with this attribute. S
   via the client.rb file
 * `node["ohai"]["disabled_plugins"]` - An array of ohai plugins to
   disable, empty by default, and must be an array if specified. Ohai 6
-  plugins should be specified as a string (ie. "dmi"). Ohai 7 plugins 
+  plugins should be specified as a string (ie. "dmi"). Ohai 7 plugins
   should be specified as a symbol within quotation marks (ie. ":Passwd").
 
 ### Deprecated / Replaced
@@ -170,7 +185,7 @@ rendered with attributes.
 ### service recipes
 The `chef-client::service` recipe includes one of the `chef-client::INIT_STYLE_service` recipes based on the attribute, `node['chef_client']['init_style']`. The individual service recipes can be included directly, too. For example, to use the init scripts, on a node or role's run list:
 
-    recipe[chef-client::init]
+    recipe[chef-client::init_service]
 
 To set up the chef-client under bluepill, daemontools or runit, those recipes must be specified on the node or role's run list first, to ensure that the dependencies are resolved, as this cookbook does not directly depend on them. For example, to use runit:
 
@@ -202,7 +217,7 @@ Includes the `chef-client::service` recipe by default.
 ### delete_validation
 Use this recipe to delete the validation certificate (default `/etc/chef/validation.pem`) when using a `chef-client` after the client has been validated and authorized to connect to the server.
 
-**Note** If you're using this on a Chef 10 Server, be aware of using this recipe. First copy the validation.pem certificate file to another location, such as your knife configuration directory (`~/.chef`) or [Chef Repository](http://docs.opscode.com/essentials_repository.html).
+**Note** If you're using this on a Chef 10 Server, be aware of using this recipe. First copy the validation.pem certificate file to another location, such as your knife configuration directory (`~/.chef`) or [Chef Repository](http://docs.chef.io/essentials_repository.html).
 
 ### cron
 Use this recipe to run chef-client as a cron job rather than as a service. The cron job runs after random delay that is between 0 and 90 seconds to ensure that the chef-clients don't attempt to connect to the chef-server at the exact same time. You should set node["chef_client"]["init_style"] = "none" when you use this mode but it is not required.
@@ -230,7 +245,7 @@ default_attributes(
 Will render the following configuration (`/etc/chef/client.rb`):
 
 ```ruby
-chef_server_url "https://api.opscode.com/organizations/MYORG"
+chef_server_url "https://api.chef.io/organizations/MYORG"
 validation_client_name "MYORG-validator"
 ssl_verify_mode :verify_peer
 node_name "config-ubuntu-1204"
@@ -284,7 +299,7 @@ end
 log_location Logger::Syslog.new('chef-client', Syslog::LOG_DAEMON)
 ```
 
-(Hat tip to Joseph Holsten for this in [COOK-2326](http://tickets.opscode.com/browse/COOK-2326)
+(Hat tip to Joseph Holsten for this in [COOK-2326](http://tickets.chef.io/browse/COOK-2326)
 
 
 ### Requiring Gems
@@ -324,7 +339,7 @@ To dynamically render configuration for Start, Report, or Exception handlers, se
 - `report_handlers`
 - `exception_handlers`
 
-This is an alternative to using Opscode's [`chef_handler` cookbook](http://community.opscode.com/cookbooks/chef_handler).
+This is an alternative to using the [`chef_handler` cookbook](http://supermarket.chef.io/cookbooks/chef_handler).
 
 Each of these attributes must be an array of hashes. The hash has two keys, `class` (a string), and `arguments` (an array). For example, to use the report handler in the __Requiring Gems__ section above:
 
@@ -427,15 +442,23 @@ On Mac OS X and Mac OS X Server, the default service implementation is "launchd"
 
 Since launchd can run a service in interval mode, by default chef-client is not started in daemon mode like on Debian or Ubuntu. Keep this in mind when you look at your process list and check for a running chef process! If you wish to run chef-client in daemon mode, set attribute `chef_client.launchd_mode` to "daemon".
 
+## Installing and updating chef-client
+
+This cookbook does not handle updating the chef-client, as that's out of the cookbook's current scope. To sensibly manage updates of the chef-client omnibus install, we refer you to:
+
+* [omnibus_updater](https://github.com/hw-cookbooks/omnibus_updater) - Heavy Water's cookbook for installing the omnibus Chef package and keeping your install up-to-date
+
+For more on why this cookbook does not support installs, see [Issue #102](https://github.com/chef-cookbooks/chef-client/pull/102)
+
 
 License & Authors
 -----------------
-- Author:: Joshua Timberman (<joshua@opscode.com>)
-- Author:: Paul Mooring (<paul@opscode.com>)
-- Author:: Seth Chisamore (<schisamo@opscode.com>)
+- Author:: Joshua Timberman (<joshua@chef.io>)
+- Author:: Paul Mooring (<paul@chef.io>)
+- Author:: Seth Chisamore (<schisamo@chef.io>)
 
 ```text
-Copyright:: 2010-2013, Opscode, Inc.
+Copyright:: 2010-2015, Chef Software, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

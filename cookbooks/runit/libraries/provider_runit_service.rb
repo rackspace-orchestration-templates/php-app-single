@@ -3,7 +3,7 @@
 # Provider:: service
 #
 # Copyright 2011, Joshua Timberman
-# Copyright 2011, Opscode, Inc.
+# Copyright 2011, Chef Software, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -73,12 +73,20 @@ class Chef
 
           @current_resource.running(running?)
           @current_resource.enabled(enabled?)
+          @current_resource.env(get_current_env)
           @current_resource
         end
 
         #
         # Chef::Provider::Service overrides
         #
+
+        def action_create
+          converge_by("configure service without enabling #{@new_resource}") do
+            configure_service # Do this every run, even if service is already enabled and running
+            Chef::Log.info("#{@new_resource} configured")
+          end
+        end
 
         def action_enable
           converge_by("configure service #{@new_resource}") do
@@ -121,7 +129,9 @@ class Chef
             unless new_resource.env.empty?
               Chef::Log.debug("Setting up environment files for #{new_resource.service_name}")
               env_dir.run_action(:create)
-              env_files.each { |file| file.run_action(:create) }
+              env_files.each do |file| 
+                file.action.each { |action| file.run_action(action) }
+              end
             else
               Chef::Log.debug("Environment not specified for #{new_resource.service_name}, continuing")
             end
@@ -156,19 +166,23 @@ class Chef
         def enable_service
           Chef::Log.debug("Creating symlink in service_dir for #{new_resource.service_name}")
           service_link.run_action(:create)
-
-          Chef::Log.debug("waiting until named pipe #{service_dir_name}/supervise/ok exists.")
-          until ::FileTest.pipe?("#{service_dir_name}/supervise/ok")
-            sleep 1
-            Chef::Log.debug('.')
-          end
-
-          if new_resource.log
-            Chef::Log.debug("waiting until named pipe #{service_dir_name}/log/supervise/ok exists.")
-            until ::FileTest.pipe?("#{service_dir_name}/log/supervise/ok")
+         
+          unless inside_docker?  
+            Chef::Log.debug("waiting until named pipe #{service_dir_name}/supervise/ok exists.")
+            until ::FileTest.pipe?("#{service_dir_name}/supervise/ok")
               sleep 1
               Chef::Log.debug('.')
             end
+
+            if new_resource.log
+              Chef::Log.debug("waiting until named pipe #{service_dir_name}/log/supervise/ok exists.")
+              until ::FileTest.pipe?("#{service_dir_name}/log/supervise/ok")
+                sleep 1
+                Chef::Log.debug('.')
+              end
+            end
+          else
+              Chef::Log.debug("skipping */supervise/ok check inside docker")
           end
         end
 
@@ -407,14 +421,33 @@ exec svlogd -tt /var/log/#{new_resource.service_name}"
 
         def env_files
           return @env_files unless @env_files.nil?
-          @env_files = new_resource.env.map do |var, value|
+          create_files = new_resource.env.map do |var, value|
             env_file = Chef::Resource::File.new(::File.join(sv_dir_name, 'env', var), run_context)
             env_file.owner(new_resource.owner)
             env_file.group(new_resource.group)
             env_file.content(value)
+            env_file.action(:create)
             env_file
           end
+          extra_env = @current_resource.env.reject { |k,_| new_resource.env.key?(k) }
+          delete_files = extra_env.map do |k,_|
+            env_file = Chef::Resource::File.new(::File.join(sv_dir_name, 'env', k), run_context)
+            env_file.action(:delete)
+            env_file
+          end
+          @env_files = create_files + delete_files
           @env_files
+        end
+
+        def get_current_env
+          env_dir = ::File.join(sv_dir_name, 'env')
+          return {} unless ::File.directory? env_dir
+          files = ::Dir.glob(::File.join(env_dir,'*'))
+          env = files.reduce({}) do |c,o|
+            contents = ::IO.read(o).rstrip
+            c.merge!(::File.basename(o) => contents)
+          end
+          env
         end
 
         def check_script
@@ -492,6 +525,11 @@ exec svlogd -tt /var/log/#{new_resource.service_name}"
           @service_link = Chef::Resource::Link.new(::File.join(service_dir_name), run_context)
           @service_link.to(sv_dir_name)
           @service_link
+        end
+
+        def inside_docker?
+          results = `cat /proc/1/cgroup`.strip.split("\n")
+          results.any?{|val| /docker/ =~ val}
         end
       end
     end

@@ -1,11 +1,11 @@
 #
-# Author:: Joshua Timberman (<joshua@opscode.com>)
+# Author:: Joshua Timberman (<joshua@chef.io>)
 # Author:: Joshua Sierles (<joshua@37signals.com>)
-# Author:: Seth Chisamore (<schisamo@opscode.com>)
+# Author:: Seth Chisamore (<schisamo@chef.io>)
 # Cookbook Name:: chef-client
 # Recipe:: config
 #
-# Copyright 2008-2013, Opscode, Inc
+# Copyright 2008-2013, Chef Software, Inc
 # Copyright 2009, 37signals
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,8 +26,8 @@ class ::Chef::Recipe
 end
 
 # chef_node_name = Chef::Config[:node_name] == node['fqdn'] ? false : Chef::Config[:node_name]
-case node['chef_client']['log_file']
-when String
+
+if node['chef_client']['log_file'].is_a? String and node['chef_client']['init_style'] != 'runit'
   log_path = File.join(node['chef_client']['log_dir'], node['chef_client']['log_file'])
   node.default['chef_client']['config']['log_location'] = "'#{log_path}'"
 
@@ -37,8 +37,9 @@ when String
       path [log_path]
       rotate node['chef_client']['logrotate']['rotate']
       frequency node['chef_client']['logrotate']['frequency']
-      options ['compress']
-      postrotate '/etc/init.d/chef-client reload >/dev/null || :'
+      options node['chef_client']['log_rotation']['options']
+      postrotate node['chef_client']['log_rotation']['postrotate']
+      template_mode '0644'
     end
   end
 else
@@ -83,7 +84,10 @@ template "#{node["chef_client"]["conf_dir"]}/client.rb" do
     :report_handlers => node['chef_client']['config']['report_handlers'],
     :exception_handlers => node['chef_client']['config']['exception_handlers']
   )
-  notifies :create, 'ruby_block[reload_client_config]', :immediately
+
+  if node['chef_client']['reload_config']
+    notifies :create, 'ruby_block[reload_client_config]', :immediately
+  end
 end
 
 directory ::File.join(node['chef_client']['conf_dir'], 'client.d') do
