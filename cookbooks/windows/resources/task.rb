@@ -1,9 +1,9 @@
 #
-# Author:: Paul Mooring (<paul@opscode.com>)
+# Author:: Paul Mooring (<paul@chef.io>)
 # Cookbook Name:: windows
 # Resource:: task
 #
-# Copyright:: 2012, Opscode, Inc.
+# Copyright:: 2012, Chef Software, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@
 
 # Passwords can't be loaded for existing tasks, making :modify both confusing
 # and not very useful
-actions :create, :delete, :run, :change
+actions :create, :delete, :run, :change, :enable, :disable
 
-attribute :name, :kind_of => String, :name_attribute => true
+attribute :name, :kind_of => String, :name_attribute => true, :regex => [ /\A[^\\\/\:\*\?\<\>\|]+\z/ ]
 attribute :command, :kind_of => String
 attribute :cwd, :kind_of => String
 attribute :user, :kind_of => String, :default => nil
@@ -42,7 +42,7 @@ attribute :frequency, :equal_to => [:minute,
 attribute :start_day, :kind_of => String, :default => nil
 attribute :start_time, :kind_of => String, :default => nil
 
-attr_accessor :exists, :status
+attr_accessor :exists, :status, :enabled
 
 def initialize(name, run_context=nil)
   super

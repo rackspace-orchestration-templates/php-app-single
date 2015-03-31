@@ -1,9 +1,9 @@
 #
-# Author:: Seth Chisamore (<schisamo@opscode.com>)
+# Author:: Seth Chisamore (<schisamo@chef.io>)
 # Cookbook Name:: windows
 # Library:: helper
 #
-# Copyright:: 2011, Opscode, Inc.
+# Copyright:: 2011, Chef Software, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,17 +18,20 @@
 # limitations under the License.
 
 require 'uri'
+require 'Win32API' if Chef::Platform.windows?
+require 'chef/exceptions'
 
 module Windows
   module Helper
 
     AUTO_RUN_KEY = 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run'.freeze unless defined?(AUTO_RUN_KEY)
     ENV_KEY = 'HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'.freeze unless defined?(ENV_KEY)
+    ExpandEnvironmentStrings = Win32API.new('kernel32', 'ExpandEnvironmentStrings', ['P', 'P', 'L'], 'L') if Chef::Platform.windows?
 
     # returns windows friendly version of the provided path,
     # ensures backslashes are used everywhere
     def win_friendly_path(path)
-      path.gsub(::File::SEPARATOR, ::File::ALT_SEPARATOR) if path
+      path.gsub(::File::SEPARATOR, ::File::ALT_SEPARATOR || '\\') if path
     end
 
     # account for Window's wacky File System Redirector
@@ -82,6 +85,63 @@ module Windows
       end
     end
 
+    # Expands the environment variables
+    def expand_env_vars(path)
+      # We pick 32k because that is the largest it could be:
+      # http://msdn.microsoft.com/en-us/library/windows/desktop/ms724265%28v=vs.85%29.aspx
+      buf = 0.chr * 32 * 1024 # 32k
+      if ExpandEnvironmentStrings.call(path.dup, buf, buf.length) == 0
+        raise Chef::Exceptions::Win32APIError, "Failed calling ExpandEnvironmentStrings (received 0)"
+      end
+      buf.strip
+    end
+
+    def is_package_installed?(package_name)
+      installed_packages.include?(package_name)
+    end
+
+    def installed_packages
+      @installed_packages || begin
+        installed_packages = {}
+        # Computer\HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Uninstall
+        installed_packages.merge!(extract_installed_packages_from_key(::Win32::Registry::HKEY_LOCAL_MACHINE)) #rescue nil
+        # 64-bit registry view
+        # Computer\HKEY_LOCAL_MACHINE\Software\Wow6464Node\Microsoft\Windows\CurrentVersion\Uninstall
+        installed_packages.merge!(extract_installed_packages_from_key(::Win32::Registry::HKEY_LOCAL_MACHINE, (::Win32::Registry::Constants::KEY_READ | 0x0100))) #rescue nil
+        # 32-bit registry view
+        # Computer\HKEY_LOCAL_MACHINE\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall
+        installed_packages.merge!(extract_installed_packages_from_key(::Win32::Registry::HKEY_LOCAL_MACHINE, (::Win32::Registry::Constants::KEY_READ | 0x0200))) #rescue nil
+        # Computer\HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall
+        installed_packages.merge!(extract_installed_packages_from_key(::Win32::Registry::HKEY_CURRENT_USER)) #rescue nil
+        installed_packages
+      end
+    end
+
+    private
+    def extract_installed_packages_from_key(hkey = ::Win32::Registry::HKEY_LOCAL_MACHINE, desired = ::Win32::Registry::Constants::KEY_READ)
+      uninstall_subkey = 'Software\Microsoft\Windows\CurrentVersion\Uninstall'
+      packages = {}
+      begin
+        ::Win32::Registry.open(hkey, uninstall_subkey, desired) do |reg|
+          reg.each_key do |key, wtime|
+            begin
+              k = reg.open(key, desired)
+              display_name = k["DisplayName"] rescue nil
+              version = k["DisplayVersion"] rescue "NO VERSION"
+              uninstall_string = k["UninstallString"] rescue nil
+              if display_name
+                packages[display_name] = {:name => display_name,
+                                          :version => version,
+                                          :uninstall_string => uninstall_string}
+              end
+            rescue ::Win32::Registry::Error
+            end
+          end
+        end
+      rescue ::Win32::Registry::Error
+      end
+      packages
+    end
   end
 end
 

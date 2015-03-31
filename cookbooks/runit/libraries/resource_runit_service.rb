@@ -3,7 +3,7 @@
 # Provider:: service
 #
 # Copyright 2011, Joshua Timberman
-# Copyright 2011, Opscode, Inc.
+# Copyright 2011, Chef Software, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ class Chef
         @provider = Chef::Provider::Service::Runit
         @supports = { :restart => true, :reload => true, :status => true }
         @action = :enable
-        @allowed_actions = [:nothing, :start, :stop, :enable, :disable, :restart, :reload, :status, :once, :hup, :cont, :term, :kill, :up, :down, :usr1, :usr2]
+        @allowed_actions = [:nothing, :start, :stop, :enable, :disable, :restart, :reload, :status, :once, :hup, :cont, :term, :kill, :up, :down, :usr1, :usr2, :create]
 
         # sv_bin, sv_dir, service_dir and lsb_init_dir may have been set in the
         # node attributes
@@ -135,7 +135,8 @@ class Chef
         set_or_return(:env, arg, :kind_of => [Hash])
       end
 
-      def log(arg = nil)
+      ## set log to current instance value if nothing is passed.
+      def log(arg = @log)
         set_or_return(:log, arg, :kind_of => [TrueClass, FalseClass])
       end
 
@@ -237,10 +238,10 @@ class Chef
       end
 
       def runit_attributes_from_node(run_context)
-        if run_context && run_context.node
-          runit_attr = run_context.node[:runit]
+        if run_context && run_context.node && run_context.node[:runit]
+          run_context.node[:runit]
         else
-          runit_attr = {}
+          {}
         end
       end
     end

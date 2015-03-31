@@ -2,7 +2,7 @@
 # Cookbook Name:: apt
 # Resource:: repository
 #
-# Copyright 2010-2013, Opscode, Inc.
+# Copyright 2010-2013, Chef Software, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,8 +26,20 @@ def initialize(*args)
   @action = :add
 end
 
+state_attrs :arch,
+            :cache_rebuild,
+            :components,
+            :cookbook,
+            :deb_src,
+            :distribution,
+            :key,
+            :keyserver,
+            :repo_name,
+            :trusted,
+            :uri
+
 # name of the repo, used for source.list filename
-attribute :repo_name, :kind_of => String, :name_attribute => true
+attribute :repo_name, :kind_of => String, :name_attribute => true, :regex => [/^([a-z]|[A-Z]|[0-9]|_|-|\.)+$/]
 attribute :uri, :kind_of => String
 attribute :distribution, :kind_of => String
 attribute :components, :kind_of => Array, :default => []

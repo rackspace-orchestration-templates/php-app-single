@@ -7,7 +7,9 @@ cookbook 'build-essential'
 cookbook 'apt'
 cookbook 'chef-client'
 cookbook 'apache2'
-cookbook 'mysql'
+cookbook 'mysql',
+  :git => 'https://github.com/chef-cookbooks/mysql.git',
+  :ref => '5937a28c41f23d7483569014fb1fb2f635707e33'
 cookbook 'application'
 cookbook 'application_php'
 cookbook 'php'
