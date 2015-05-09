@@ -157,13 +157,13 @@ parameters:
     label: HTTP Port
     description: HTTP Port
     type: string
-    default: 80
+    default: "80"
 
   https_port:
     label: HTTPS Port
     description: HTTPS Port
     type: string
-    default: 443
+    default: "443"
 
   memcached_size:
     label: Memcached Memory Limit
