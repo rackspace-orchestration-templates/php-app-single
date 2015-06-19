@@ -224,6 +224,9 @@ resources:
                   apache:
                     http_port: %http_port%
                     https_port: %https_port%
+                    vhosts:
+                      - domain: %url%
+                        docroot: %destination%/%public%
                   application:
                     repo: %repo%
                     revision: %rev%
