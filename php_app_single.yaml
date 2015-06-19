@@ -226,7 +226,7 @@ resources:
                     https_port: %https_port%
                     vhosts:
                       - domain: %url%
-                        docroot: %destination%/%public%
+                        docroot: %destination%%public%
                   application:
                     repo: %repo%
                     revision: %rev%
