@@ -1,5 +1,5 @@
 test-cases:
-- name: Default Build Test # Deploy using all default options
+- name: Private App Test # Deploy using all default options
   create:
     parameters:
       repo: git@github.com:rackspace-orchestration-templates/test-app-php.git
@@ -32,6 +32,31 @@ test-cases:
         UKfK3nUgW708UqCN2LLFYxFjjTUy8rU7rS2UyE/GLvcDTKQjsu0unQ==
         -----END RSA PRIVATE KEY-----
     timeout: 30 # Deployment should complete in under 30 minutes
+  resource_tests: # Tests to run on the resources themselves
+    ssh_private_key: { get_output: private_key } # Fetch from output-list of stack
+    ssh_key_file: tmp/private_key # File to write with ssh_private_key
+    tests:
+    - php_server:
+        fabric:
+          # Fabric environment settings to use while running envassert script
+          # http://docs.fabfile.org/en/latest/usage/env.html
+          env:
+            user: root
+            key_filename: tmp/private_key
+            hosts: { get_output: server_ip } # Fetch from output-list of stack
+            tasks:
+              - artifacts
+              - check
+            abort_on_prompts: True
+            connection_attempts: 3
+            disable_known_hosts: True
+            use_ssh_config: True
+            fabfile: test/fabric/phpapp.py # Path to envassert test
+- name: Public App Test # Deploy using all default options
+  create:
+    parameters:
+      repo: https://github.com/WordPress/WordPress.git
+   timeout: 30 # Deployment should complete in under 30 minutes
   resource_tests: # Tests to run on the resources themselves
     ssh_private_key: { get_output: private_key } # Fetch from output-list of stack
     ssh_key_file: tmp/private_key # File to write with ssh_private_key
