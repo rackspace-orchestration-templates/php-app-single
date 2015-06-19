@@ -151,6 +151,15 @@ parameters:
 
 resources:
 
+  wait_condition:
+    type: OS::Heat::SwiftSignal
+    properties:
+      handle: { get_resource: wait_condition_handle }
+      timeout: 1800
+
+  wait_condition_handle:
+    type: OS::Heat::SwiftSignalHandle
+
   ssh_key:
     type: "OS::Nova::KeyPair"
     properties:
