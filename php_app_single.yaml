@@ -229,7 +229,6 @@ resources:
                       - application
                       - memcached
                       - mysql
-                      - php
             # Example Pillar Data using %value% notation
             # See example pillar data from states repository.
               - path: /srv/pillar/localhost.sls
