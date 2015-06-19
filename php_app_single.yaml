@@ -107,7 +107,7 @@ parameters:
     label: Site Domain
     description: URL for site
     type: string
-    default: 'http://example.com'
+    default: 'example.com'
 
   deploy_key:
     label: Git Deploy Key
