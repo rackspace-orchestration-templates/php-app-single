@@ -244,6 +244,8 @@ resources:
                     packages: %packages%
                     deploy_key: |
                       %deploy_key%
+                  memcached:
+                    memory_limit: %memcached_size%
                   mysql:
                     root_password: %mysql_root_password%
             # Salt Bootstrap script
@@ -271,6 +273,7 @@ resources:
           params:
             wc_notify: { get_attr: ['wait_condition_handle', 'curl_cli'] }
             "%mysql_root_password%": { get_attr: [mysql_root_password, value] }
+            "%memcached_size%": { get_param: memcached_size }
             "%destination%": { get_param: destination }
             "%deploy_key%": { get_param: deploy_key }
             "%http_port%": { get_param: http_port }
