@@ -90,8 +90,8 @@ parameters:
   packages:
     label: System Packages
     description: |
-      Optional: Additional system packages to install. For a list of available
-      packages, see: http://packages.ubuntu.com/trusty/allpackages
+      Optional: Additional system packages to install. Must be formatted as
+      as a python list: ['package1', 'package2', 'etc']
     type: string
     default: ''
 
