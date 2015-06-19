@@ -242,8 +242,7 @@ resources:
                     revision: %rev%
                     destination: %destination%
                     packages: %packages%
-                    deploy_key: |
-                      %deploy_key%
+                    deploy_key: %deploy_key%
                   memcached:
                     memory_limit: %memcached_size%
                   mysql:
