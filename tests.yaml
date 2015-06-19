@@ -29,34 +29,7 @@ test-cases:
     timeout: 30 # Deployment should complete in under 30 minutes
     parameters:
       repo: git@github.com:rackspace-orchestration-templates/test-app-php.git
-      deploy_key: |
-        -----BEGIN RSA PRIVATE KEY-----
-        MIIEpAIBAAKCAQEArJLYeNfj4kCzTNoYJuVIF4P1PXSOl0piserOfCA3sPC9EWgH
-        5tRrDmRYtC4usp7MTi0DQ79+NjS1Z5gCsjcH5ewqSNdf339cUsgbsil1TSHd6lj5
-        cXp9baOHdNeAKuHvBjM1q0YPbI6oyVQOuAXAEIx1SLF3ZHENsqoaeVJvDfQRNdKl
-        Mw3EhW1Ay4FB0oDBINCbp+P9DSNpdDrSfmoeelTYfmXhVQXB8migBpxJeu1N8ZSY
-        XwS4g06wLGPgomtiX5LrrixgsOoIVNaFaCrOKwFHdmGpSVbqukkeEsrMKtyZ3ovB
-        AhogCu6kggSXUeQxetWs4TSwm6MKc9gy3hWUmwIDAQABAoIBAB8su9xAq9MQexN0
-        Bo7oNnjBBsleR+/+qQuY7kowC790DcOaNms1jk1gRUHvYdI0q5WnvgI8EpG6PdcD
-        9+C33j5jxlO4TIJ0YHo32gD6Sk1vw8X04sLkLMpkkzDBSU7115cYIybYliq3LriH
-        7czChSq4JOvH21iSr7XJ0tR91r//Pg1ekULmUs7yxHr9ueoZ9tKs4AyaolykzgR1
-        p3ZjRCAEeJw9o5n9BiCi5WRWulZ7zgjx2ADFLhAVHQ+T4fL4Ih3fSuxeddsVxPtr
-        KZwiinPLEChHo59I0XFDEZApwoWff2TFnNWnx8D3DHXatyZdM+Wg+qh9gzIAO86g
-        QpL6YUkCgYEA4JEizicJeNmXAG5ccmwnVOxBVBz8vw3Bk35PX9iFjj5sVVi2wg/8
-        zzF1KyneAO9rRjRh2TlJOsIs/l+rWn0yATJlJOaMfuby0yyvaKAxLAxxf8nsB7i7
-        HaH9Gpci8c8GJiZOKEkeFiZJdMFFfhi/cxbXCspgPypaC/gy0iFlDyUCgYEAxLqk
-        lQrFh268/GgUrlznCUksYTiL4kPRGIMKm+IOHNLTt/U4dMFVqm49pVvM0kKXMDk7
-        opHNa7FzaAx9VEjxvT++l9e0PxUSbhvjoAHmra5CisZNzYbpaeKCJBCGsHzKmh36
-        kohRh2axZQN4/sapT7m2cqinmlfNrgDo7NoTqL8CgYEA3WMX3gasFuDkNb+XEhK/
-        n8AeE29UWIGWQfL3C3VpDTdLE8SWv7CFOjn22eu3elKN/jMr97u7DttZAhmM03Oz
-        NWzaO8ux3HWQFFHsR4gNkfBegG2vbFlY1rjYzjsLbzn6ROfki2Cx8YIjTqAvA0Yg
-        j7SHoZKr2fnFtiEk8PWNLKUCgYEAnEbcCR2mboCUljmj/CMG0USUgaKm1JYk20D1
-        w4EeztzXnPGq6GzQvXOXeu1i1sBZU9CTRABo25z6XXRWdwb/KeQiZoLOx7HYkymK
-        eAgqlFuytoTzN0ptz1RFJ5sNM9PeKfGYpKCvi00TrHfGvTVZOGEBwzGg+qW3WPuW
-        DNjr9wcCgYBZZ/xWskuazxpOyAU0kG0x9pPtVN9JX9q1aIxpLTBNunTQRVU2IbP6
-        ey5WxvSvO7x/azGdjcxCezH8dvAvyjKqPiA2dK7SabOzY+jQpQL32kWki+CREEQl
-        UKfK3nUgW708UqCN2LLFYxFjjTUy8rU7rS2UyE/GLvcDTKQjsu0unQ==
-        -----END RSA PRIVATE KEY-----
+      deploy_key: -----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEArJLYeNfj4kCzTNoYJuVIF4P1PXSOl0piserOfCA3sPC9EWgH\n5tRrDmRYtC4usp7MTi0DQ79+NjS1Z5gCsjcH5ewqSNdf339cUsgbsil1TSHd6lj5\ncXp9baOHdNeAKuHvBjM1q0YPbI6oyVQOuAXAEIx1SLF3ZHENsqoaeVJvDfQRNdKl\nMw3EhW1Ay4FB0oDBINCbp+P9DSNpdDrSfmoeelTYfmXhVQXB8migBpxJeu1N8ZSY\nXwS4g06wLGPgomtiX5LrrixgsOoIVNaFaCrOKwFHdmGpSVbqukkeEsrMKtyZ3ovB\nAhogCu6kggSXUeQxetWs4TSwm6MKc9gy3hWUmwIDAQABAoIBAB8su9xAq9MQexN0\nBo7oNnjBBsleR+/+qQuY7kowC790DcOaNms1jk1gRUHvYdI0q5WnvgI8EpG6PdcD\n9+C33j5jxlO4TIJ0YHo32gD6Sk1vw8X04sLkLMpkkzDBSU7115cYIybYliq3LriH\n7czChSq4JOvH21iSr7XJ0tR91r//Pg1ekULmUs7yxHr9ueoZ9tKs4AyaolykzgR1\np3ZjRCAEeJw9o5n9BiCi5WRWulZ7zgjx2ADFLhAVHQ+T4fL4Ih3fSuxeddsVxPtr\nKZwiinPLEChHo59I0XFDEZApwoWff2TFnNWnx8D3DHXatyZdM+Wg+qh9gzIAO86g\nQpL6YUkCgYEA4JEizicJeNmXAG5ccmwnVOxBVBz8vw3Bk35PX9iFjj5sVVi2wg/8\nzzF1KyneAO9rRjRh2TlJOsIs/l+rWn0yATJlJOaMfuby0yyvaKAxLAxxf8nsB7i7\nHaH9Gpci8c8GJiZOKEkeFiZJdMFFfhi/cxbXCspgPypaC/gy0iFlDyUCgYEAxLqk\nlQrFh268/GgUrlznCUksYTiL4kPRGIMKm+IOHNLTt/U4dMFVqm49pVvM0kKXMDk7\nopHNa7FzaAx9VEjxvT++l9e0PxUSbhvjoAHmra5CisZNzYbpaeKCJBCGsHzKmh36\nkohRh2axZQN4/sapT7m2cqinmlfNrgDo7NoTqL8CgYEA3WMX3gasFuDkNb+XEhK/\nn8AeE29UWIGWQfL3C3VpDTdLE8SWv7CFOjn22eu3elKN/jMr97u7DttZAhmM03Oz\nNWzaO8ux3HWQFFHsR4gNkfBegG2vbFlY1rjYzjsLbzn6ROfki2Cx8YIjTqAvA0Yg\nj7SHoZKr2fnFtiEk8PWNLKUCgYEAnEbcCR2mboCUljmj/CMG0USUgaKm1JYk20D1\nw4EeztzXnPGq6GzQvXOXeu1i1sBZU9CTRABo25z6XXRWdwb/KeQiZoLOx7HYkymK\neAgqlFuytoTzN0ptz1RFJ5sNM9PeKfGYpKCvi00TrHfGvTVZOGEBwzGg+qW3WPuW\nDNjr9wcCgYBZZ/xWskuazxpOyAU0kG0x9pPtVN9JX9q1aIxpLTBNunTQRVU2IbP6\ney5WxvSvO7x/azGdjcxCezH8dvAvyjKqPiA2dK7SabOzY+jQpQL32kWki+CREEQl\nUKfK3nUgW708UqCN2LLFYxFjjTUy8rU7rS2UyE/GLvcDTKQjsu0unQ==\n-----END RSA PRIVATE KEY-----
   resource_tests: # Tests to run on the resources themselves
     ssh_private_key: { get_output: private_key } # Fetch from output-list of stack
     ssh_key_file: tmp/private_key # File to write with ssh_private_key
