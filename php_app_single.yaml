@@ -186,12 +186,6 @@ resources:
       length: 32
       sequence: lettersdigits
 
-  mysql_debian_password:
-    type: "OS::Heat::RandomString"
-    properties:
-      length: 32
-      sequence: lettersdigits
-
   php_server:
     type: "OS::Nova::Server"
     properties:
@@ -232,14 +226,15 @@ resources:
                     '*':
                       - salt-minion
                       - apache
+                      - application
+                      - memcached
                       - mysql
+                      - php
             # Example Pillar Data using %value% notation
             # See example pillar data from states repository.
               - path: /srv/pillar/localhost.sls
                 permissions: '0600'
                 content: |
-                  mysql:
-                    root_password: %mysql_root_password%
                   application:
                     repo: %repo%
                     repo_hostname: %repo_hostname%
@@ -249,6 +244,8 @@ resources:
                     packages: %packages%
                     deploy_key: |
                       %deploy_key%
+                  mysql:
+                    root_password: %mysql_root_password%
             # Salt Bootstrap script
               - path: /tmp/heat/salt_run.sh
                 permissions: '0500'
