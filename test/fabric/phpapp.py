@@ -1,25 +1,14 @@
-import re
-from fabric.api import env, run, hide, task
+from fabric.api import env, task
 from envassert import detect, file, port, process, service, user
-from hot.utils.test import get_artifacts
-
-
-def apache2_is_responding():
-    with hide('running', 'stdout'):
-        wget_cmd = (
-            "wget --quiet --output-document - --header='Host: example.com' "
-            "http://localhost/"
-        )
-        homepage = run(wget_cmd)
-        if re.search('Welcome to example.com', homepage):
-            return True
-        else:
-            return False
+from hot.utils.test import get_artifacts, http_check
 
 
 @task
 def check():
     env.platform_family = detect.detect()
+
+    site = "http://localhost/"
+    string = "Apache2 Ubuntu Default Page"
 
     assert file.exists('/var/www/vhosts/application/index.php'), \
         '/var/www/vhosts/application/index.php did not exist'
@@ -39,7 +28,7 @@ def check():
     assert service.is_enabled('mysql'), 'mysql service not enabled'
     assert service.is_enabled('memcached'), 'memcached service not enabled'
 
-    assert apache2_is_responding(), 'apache2 did not respond as expected.'
+    assert http_check(site, string), 'Apache is not responding as expected.'
 
 
 @task
