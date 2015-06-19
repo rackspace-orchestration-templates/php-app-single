@@ -103,20 +103,6 @@ parameters:
     type: string
     default: ''
 
-  repo_hostname:
-    label: Git Repository Hostname
-    description: |
-      Optional: Hostname of the service hosting your git repository.
-    type: string
-    default: ''
-
-  fingerprint:
-    label: Git Repository SSH Fingerprint
-    description: |
-      Optional: SSH fingerprint of the service hosting your git repository.
-    type: string
-    default: ''
-
   url:
     label: Site Domain
     description: URL for site
@@ -237,8 +223,6 @@ resources:
                 content: |
                   application:
                     repo: %repo%
-                    repo_hostname: %repo_hostname%
-                    fingerprint: %fingerprint%
                     revision: %rev%
                     destination: %destination%
                     packages: %packages%
@@ -282,8 +266,6 @@ resources:
             "%repo%": { get_param: repo }
             "%rev%": { get_param: revision }
             "%url%": { get_param: url }
-            "%fingerprint%": { get_param: fingerprint }
-            "%repo_hostname%": { get_param: repo_hostname }
  
 outputs:
   private_key:
