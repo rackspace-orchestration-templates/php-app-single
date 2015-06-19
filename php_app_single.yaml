@@ -221,6 +221,9 @@ resources:
               - path: /srv/pillar/localhost.sls
                 permissions: '0600'
                 content: |
+                  apache:
+                    http_port: %http_port%
+                    https_port: %https_port%
                   application:
                     repo: %repo%
                     revision: %rev%
@@ -246,8 +249,8 @@ resources:
                   # Run local highstate
                   salt-call --local state.highstate
                   # Open and Enable ufw
-                  ufw allow 443
-                  ufw allow 80
+                  ufw allow %https_port%
+                  ufw allow %http_port%
                   ufw allow 22
                   ufw --force enable
                   wc_notify --data-binary '{"status": "SUCCESS"}'
