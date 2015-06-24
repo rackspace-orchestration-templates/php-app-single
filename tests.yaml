@@ -17,6 +17,7 @@ test-cases:
             user: root
             key_filename: tmp/private_key
             hosts: { get_output: server_ip } # Fetch from output-list of stack
+            string: WordPress
             tasks:
               - artifacts
               - check
@@ -43,6 +44,7 @@ test-cases:
             user: root
             key_filename: tmp/private_key
             hosts: { get_output: server_ip } # Fetch from output-list of stack
+            string: PHP
             tasks:
               - artifacts
               - check

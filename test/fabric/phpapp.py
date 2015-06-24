@@ -8,7 +8,7 @@ def check():
     env.platform_family = detect.detect()
 
     site = "http://localhost/"
-    string = "Apache2 Ubuntu Default Page"
+    string = env.string
 
     assert file.exists('/var/www/vhosts/application/index.php'), \
         '/var/www/vhosts/application/index.php did not exist'
