@@ -136,7 +136,7 @@ as a python list: ['package1', 'package2', 'etc']
 * `repo`: Optional: URL to your git repository. Use the https syntax for public
 repositories, use git@ syntax for private repositories.
  (Default: '')
-* `url`: URL for site (Default: http://example.com)
+* `url`: URL for site (Default: example.com)
 * `deploy_key`: Optional: If you specified a private repository, provide your private
 deploy key here.
  (Default: '')
