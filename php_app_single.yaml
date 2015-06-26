@@ -26,8 +26,6 @@ parameter_groups:
   - http_port
   - https_port
   - memcached_size
-  - kitchen
-  - chef_version
 
 parameters:
 
@@ -50,10 +48,10 @@ parameters:
       Required: Server image used for all servers that are created as a part of
       this deployment.
     type: string
-    default: Ubuntu 12.04 LTS (Precise Pangolin) (PVHVM)
+    default: Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)
     constraints:
     - allowed_values:
-      - Ubuntu 12.04 LTS (Precise Pangolin) (PVHVM)
+      - Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)
       description: Must be a supported operating system.
 
   flavor:
@@ -92,8 +90,8 @@ parameters:
   packages:
     label: System Packages
     description: |
-      Optional: Additional system packages to install. For a list of available
-      packages, see: http://packages.ubuntu.com/precise/allpackages
+      Optional: Additional system packages to install. Must be formatted as
+      as a python list: ['package1', 'package2', 'etc']
     type: string
     default: ''
 
@@ -109,7 +107,7 @@ parameters:
     label: Site Domain
     description: URL for site
     type: string
-    default: 'http://example.com'
+    default: 'example.com'
 
   deploy_key:
     label: Git Deploy Key
@@ -133,26 +131,6 @@ parameters:
     type: string
     default: /
 
-  # sslcert:
-  #  description: SSL Certificate
-  #  type: string
-  #  default: false
-
-  # sslkey:
-  #  description: SSL Key
-  #  type: string
-  #  default: false
-
-  # sslcacert:
-  #  description: SSL CA Certificate
-  #  type: string
-  #  default: false
-
-  # varnish:
-  #  description: Install Varnish
-  #  type: string
-  #  default: false
-
   http_port:
     label: HTTP Port
     description: HTTP Port
@@ -171,19 +149,16 @@ parameters:
     type: number
     default: 128
 
-  kitchen:
-    label: Kitchen
-    description: URL for the kitchen to use
-    type: string
-    default: https://github.com/rackspace-orchestration-templates/php-app-single
-
-  chef_version:
-    label: Chef Version
-    description: Version of chef client to use
-    type: string
-    default: 12.2.1-1
-
 resources:
+
+  wait_condition:
+    type: OS::Heat::SwiftSignal
+    properties:
+      handle: { get_resource: wait_condition_handle }
+      timeout: 1800
+
+  wait_condition_handle:
+    type: OS::Heat::SwiftSignalHandle
 
   ssh_key:
     type: "OS::Nova::KeyPair"
@@ -192,12 +167,6 @@ resources:
       save_private_key: true
 
   mysql_root_password:
-    type: "OS::Heat::RandomString"
-    properties:
-      length: 32
-      sequence: lettersdigits
-
-  mysql_debian_password:
     type: "OS::Heat::RandomString"
     properties:
       length: 32
@@ -212,47 +181,98 @@ resources:
       key_name: { get_resource: ssh_key }
       metadata:
         rax-heat: { get_param: "OS::stack_id" }
-
-  php_setup:
-    type: "OS::Heat::ChefSolo"
-    depends_on: php_server
-    properties:
-      username: root
-      private_key: { get_attr: [ssh_key, private_key] }
-      host: { get_attr: [php_server, accessIPv4] }
-      kitchen: { get_param: kitchen }
-      chef_version: { get_param: chef_version }
-      node:
-        mysql:
-          server_root_password: { get_attr: [mysql_root_password, value] }
-          server_debian_password: { get_attr: [mysql_debian_password, value] }
-          bind_address: 127.0.0.1
-        php_app:
-          destination: { get_param: destination }
-          deploy_key: { get_param: deploy_key }
-          http_port: { get_param: http_port }
-          https_port: { get_param: https_port }
-          packages: { get_param: packages }
-          public: { get_param: public }
-          repo: { get_param: repo }
-          rev: { get_param: revision }
-          # sslcert: { get_param: sslcert }
-          # sslkey: { get_param: sslkey }
-          # sslcacert: { get_param: sslcacert }
-          url: { get_param: url }
-          # varnish: { get_param: varnish }
-        memcached:
-          listen: 127.0.0.1
-        varnish:
-          backend_host: 127.0.0.1
-        run_list: ["recipe[apt]",
-                   "recipe[build-essential]",
-                   "recipe[memcached]",
-                   "recipe[rax_php_app]",
-                   "recipe[php-ioncube]",
-                   "recipe[mysql::server]"]
-
-
+      config_drive: "true"
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: |
+            #cloud-config
+            package_update: true
+            packages:
+              - git
+            write_files:
+            # Set salt-minion to only use local resources
+              - path: /etc/salt/minion.d/local.conf
+                permissions: '0644'
+                content: |
+                  file_client: local
+                  mysql.default_file: '/etc/mysql/debian.cnf'
+            # Write out Pillar top.sls
+              - path: /srv/pillar/top.sls
+                permissions: '0600'
+                content: |
+                  base:
+                    '*':
+                      - localhost
+            # Write out State top.sls
+              - path: /srv/salt/top.sls
+                permissions: '0644'
+                content: |
+                  base:
+                    '*':
+                      - salt-minion
+                      - apache
+                      - application
+                      - memcached
+                      - mysql
+                      - php
+            # Example Pillar Data using %value% notation
+            # See example pillar data from states repository.
+              - path: /srv/pillar/localhost.sls
+                permissions: '0600'
+                content: |
+                  apache:
+                    http_port: %http_port%
+                    https_port: %https_port%
+                    vhosts:
+                      - domain: %url%
+                        docroot: %destination%%public%
+                  application:
+                    repo: %repo%
+                    revision: %rev%
+                    destination: %destination%
+                    packages: %packages%
+                    deploy_key: %deploy_key%
+                  memcached:
+                    memory_limit: %memcached_size%
+                  mysql:
+                    root_password: %mysql_root_password%
+            # Salt Bootstrap script
+              - path: /tmp/heat/salt_run.sh
+                permissions: '0500'
+                content: |
+                  #!/bin/bash
+                  # Install salt-minion using Salt Bootstrap
+                  curl -L https://bootstrap.saltstack.com | sudo sh -s --
+                  salt-minion --versions
+                  # Clone down States
+                  mkdir -p /tmp/heat/states
+                  git clone https://github.com/rackspace-orchestration-templates/salt-states.git /tmp/heat/states
+                  cp -nr /tmp/heat/states/* /srv/salt/
+                  # Run local highstate
+                  salt-call --local state.highstate
+                  # Open and Enable ufw
+                  ufw allow %https_port%
+                  ufw allow %http_port%
+                  ufw allow 22
+                  ufw --force enable
+                  wc_notify --data-binary '{"status": "SUCCESS"}'
+            runcmd:
+              - /tmp/heat/salt_run.sh
+          params:
+            wc_notify: { get_attr: ['wait_condition_handle', 'curl_cli'] }
+            "%mysql_root_password%": { get_attr: [mysql_root_password, value] }
+            "%memcached_size%": { get_param: memcached_size }
+            "%destination%": { get_param: destination }
+            "%deploy_key%": { get_param: deploy_key }
+            "%http_port%": { get_param: http_port }
+            "%https_port%": { get_param: https_port }
+            "%packages%": { get_param: packages }
+            "%public%": { get_param: public }
+            "%repo%": { get_param: repo }
+            "%rev%": { get_param: revision }
+            "%url%": { get_param: url }
+ 
 outputs:
   private_key:
     description: SSH Private Key
