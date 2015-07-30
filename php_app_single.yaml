@@ -243,7 +243,7 @@ resources:
                 content: |
                   #!/bin/bash
                   # Install salt-minion using Salt Bootstrap
-                  curl -L https://bootstrap.saltstack.com | sudo sh -s --
+                  curl -L https://bootstrap.saltstack.com | sudo sh -s -- -P
                   salt-minion --versions
                   # Clone down States
                   mkdir -p /tmp/heat/states
@@ -272,7 +272,7 @@ resources:
             "%repo%": { get_param: repo }
             "%rev%": { get_param: revision }
             "%url%": { get_param: url }
- 
+
 outputs:
   private_key:
     description: SSH Private Key
