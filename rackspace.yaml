@@ -6,7 +6,9 @@ flavor-weight: 3
 reach-info:
   icon-20x20: https://0b5294b243620310a700-e388a7f3aba385a925111b1fc6f680d4.ssl.cf2.rackcdn.com/php-icon-20x20.png
   tattoo: https://0b5294b243620310a700-e388a7f3aba385a925111b1fc6f680d4.ssl.cf2.rackcdn.com/php-tattoo.png
-abstract: A single Linux server running Apache, PHP 5, and MySQL.
+abstract: |
+  PHP is an open-source server-side scripting and general purpose programming
+  language.
 hidden_outputs:
   - private_key
   - mysql_root_password
