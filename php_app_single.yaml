@@ -1,7 +1,9 @@
 heat_template_version: 2013-05-23
 
 description: |
-  Heat template to deploy a single server running a PHP app under apache
+  #### Single Server
+
+  A single Linux server running Apache PHP 5 and MySQL.
 
 parameter_groups:
 
